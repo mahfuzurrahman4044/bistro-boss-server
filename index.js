@@ -9,7 +9,7 @@ app.use(cors());
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.83ramik.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
-console.log(process.env.DB_USER, process.env.DB_PASS);
+// console.log(process.env.DB_USER, process.env.DB_PASS);
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -36,11 +36,17 @@ app.get("/", (req, res) => {
   res.send("Bistro Boss Restaurant");
 });
 
-const menus = client.db("bistro-boss").collection("menus");
+const menusCollection = client.db("bistro-boss").collection("menus");
 app.get("/menus", async (req, res) => {
-  const result = await menus.find().toArray();
+  const result = await menusCollection.find().toArray();
   res.send(result);
 });
+
+const reviewsCollection = client.db("bistro-boss").collection("reviews")
+app.get("/reviews", async (req, res) => {
+  const result = await reviewsCollection.find().toArray();
+  res.send(result)
+})
 
 app.listen(port, () => {
   console.log(`Bistro Boss is running at ${port}`);

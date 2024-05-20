@@ -36,6 +36,40 @@ app.get("/", (req, res) => {
   res.send("Bistro Boss Restaurant");
 });
 
+const nodeMailer = require("nodemailer");
+
+// console.log(process.env.Email, process.env.Pass);
+
+const transporter = nodeMailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.Email,
+    pass: process.env.Pass,
+  },
+});
+
+app.post("/contactEmail", (req, res) => {
+  const { userName, userEmail, subject, message } = req.body;
+
+  const mailOptions = {
+    to: "mahfuzurrahman4044@gmail.com",
+    subject: subject,
+    text: `Name: ${userName}\nFrom: ${userEmail}\n\n${message}`,
+  };
+  // console.log(mailOptions);
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.error(error);
+      res.status(500).json({ message: "Error sending email" });
+    } else {
+      console.log("Email sent: " + info.response);
+      res.status(200).json({ message: "Email sent successfully" });
+    }
+  });
+});
+
+
 const menusCollection = client.db("bistro-boss").collection("menus");
 app.get("/menus", async (req, res) => {
   const result = await menusCollection.find().toArray();

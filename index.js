@@ -48,6 +48,25 @@ app.get("/reviews", async (req, res) => {
   res.send(result)
 })
 
+const cartsCollection = client.db("bistro-boss").collection("carts")
+app.post("/carts", async (req, res) => {
+  const carts = req.body;
+  console.log(carts);
+  const result = await cartsCollection.insertOne(carts)
+  res.send(result);
+})
+
+app.get("/carts", async (req, res) => {
+  const result = await cartsCollection.find().toArray()
+  res.send(result)
+})
+
+app.get("/carts/:email", async (req, res) => {
+  const email = req.params.email;
+  const result = await cartsCollection.find({ email: email }).toArray()
+  res.send(result)
+})
+
 app.listen(port, () => {
   console.log(`Bistro Boss is running at ${port}`);
 });

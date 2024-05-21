@@ -6,7 +6,7 @@ const port = process.env.PORT || 5000;
 app.use(express.json());
 app.use(cors());
 
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.83ramik.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // console.log(process.env.DB_USER, process.env.DB_PASS);
@@ -99,6 +99,22 @@ app.get("/carts/:email", async (req, res) => {
   const email = req.params.email;
   const result = await cartsCollection.find({ email: email }).toArray()
   res.send(result)
+})
+
+app.delete("/deleteCart/:id", async (req, res) => {
+  const id = req.params.id;
+  // console.log(id)
+  try {
+    const result = await cartsCollection.deleteOne({ _id: new ObjectId(id) });
+    if (result.deletedCount === 1) {
+      res.status(200).json({ message: "Item deleted successfully" });
+    } else {
+      res.status(404).json({ message: "Item not found" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error deleting item" });
+  }
 })
 
 app.listen(port, () => {

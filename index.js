@@ -117,6 +117,39 @@ app.delete("/deleteCart/:id", async (req, res) => {
   }
 })
 
+const usersCollection = client.db("bistro-boss").collection("users");
+app.post("/users", async (req, res) => {
+  const user = req.body;
+  // console.log(user)
+
+  const existingUser = await usersCollection.findOne({ email: user.email })
+  if (existingUser) {
+    return res.send({ message: "User already exist" })
+  }
+
+  const result = await usersCollection.insertOne(user)
+  res.send(result)
+})
+
+app.get("/users", async (req, res) => {
+  const users = await usersCollection.find().toArray()
+  res.send(users)
+})
+
+app.patch("/users/admin/:id", async (req, res) => {
+  const id = req.params.id;
+  const filtler = { _id: new ObjectId(id) }
+
+  const updateDoc = {
+    $set: {
+      role: "admin"
+    },
+  };
+
+  const result = await usersCollection.updateOne(filtler, updateDoc)
+  res.send(result)
+})
+
 app.listen(port, () => {
   console.log(`Bistro Boss is running at ${port}`);
 });

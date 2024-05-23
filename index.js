@@ -8,7 +8,8 @@ app.use(express.json());
 app.use(cors());
 
 const verifyJwt = (req, res, next) => {
-  const authorization = req.headers.token;
+  const authorization = req.headers.authorization;
+  // console.log(authorization);
 
   if (!authorization) {
     res.status(401).send({ error: true, message: "Unauthorized Access" })
@@ -121,13 +122,13 @@ app.get("/carts", verifyJwt, async (req, res) => {
   res.send(result)
 })
 
-app.get("/carts/:email", async (req, res) => {
+app.get("/carts/:email", verifyJwt, async (req, res) => {
   const email = req.params.email;
 
-  // const decodedEmail = req.decoded.email
-  // if (email !== decodedEmail) {
-  //   return res.status(403).send({ error: true, message: "Invalid Token" })
-  // }
+  const decodedEmail = req.decoded.email
+  if (email !== decodedEmail) {
+    return res.status(403).send({ error: true, message: "Invalid Token" })
+  }
 
   const result = await cartsCollection.find({ email: email }).toArray()
   res.send(result)
@@ -163,12 +164,24 @@ app.post("/users", async (req, res) => {
   res.send(result)
 })
 
-app.get("/users", async (req, res) => {
+const verifyAdmin = async (req, res, next) => {
+  const email = req.decoded.email;
+
+  const user = await usersCollection.findOne({ email: email });
+
+  if (user?.role !== "admin") {
+    return res.status(403).send({ message: "Admin is not valid" })
+  }
+
+  next()
+}
+
+app.get("/users", verifyJwt, verifyAdmin, async (req, res) => {
   const users = await usersCollection.find().toArray()
   res.send(users)
 })
 
-app.get("/users/isAdmin/:email", async (req, res) => {
+app.get("/users/isAdmin/:email", verifyJwt, async (req, res) => {
   const email = req.params.email
 
   // const decodedEmail = req.decoded.email
@@ -181,7 +194,7 @@ app.get("/users/isAdmin/:email", async (req, res) => {
   res.send(result)
 })
 
-app.get("/users/isSeller/:email", async (req, res) => {
+app.get("/users/isSeller/:email", verifyJwt, async (req, res) => {
   const email = req.params.email
 
   // const decodedEmail = req.decoded.email
@@ -223,6 +236,7 @@ app.patch("/users/seller/:id", async (req, res) => {
   const result = await usersCollection.updateOne(filtler, updateDoc)
   res.send(result)
 })
+
 
 app.listen(port, () => {
   console.log(`Bistro Boss is running at ${port}`);

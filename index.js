@@ -89,7 +89,7 @@ app.post("/contactEmail", (req, res) => {
       console.error(error);
       res.status(500).json({ message: "Error sending email" });
     } else {
-      console.log("Email sent: " + info.response);
+      // console.log("Email sent: " + info.response);
       res.status(200).json({ message: "Email sent successfully" });
     }
   });
@@ -111,7 +111,7 @@ app.get("/reviews", async (req, res) => {
 const cartsCollection = client.db("bistro-boss").collection("carts")
 app.post("/carts", async (req, res) => {
   const carts = req.body;
-  console.log(carts);
+  // console.log(carts);
   const result = await cartsCollection.insertOne(carts)
   res.send(result);
 })
@@ -168,9 +168,35 @@ app.get("/users", async (req, res) => {
   res.send(users)
 })
 
+app.get("/users/isAdmin/:email", async (req, res) => {
+  const email = req.params.email
+
+  // const decodedEmail = req.decoded.email
+  // if (email !== decodedEmail) {
+  //   return res.status(403).send({ error: true, message: "Invalid Admin" })
+  // }
+
+  const user = await usersCollection.findOne({ email: email })
+  const result = { admin: user?.role === "admin" }
+  res.send(result)
+})
+
+app.get("/users/isSeller/:email", async (req, res) => {
+  const email = req.params.email
+
+  // const decodedEmail = req.decoded.email
+  // if (email !== decodedEmail) {
+  //   return res.status(403).send({ error: true, message: "Invalid Admin" })
+  // }
+
+  const user = await usersCollection.findOne({ email: email })
+  const result = { seller: user?.role === "seller" }
+  res.send(result)
+})
+
 app.patch("/users/admin/:id", async (req, res) => {
   const id = req.params.id;
-  console.log(id)
+  // console.log(id)
   const filtler = { _id: new ObjectId(id) }
 
   const updateDoc = {
@@ -185,7 +211,7 @@ app.patch("/users/admin/:id", async (req, res) => {
 
 app.patch("/users/seller/:id", async (req, res) => {
   const id = req.params.id;
-  console.log(id)
+  // console.log(id)
   const filtler = { _id: new ObjectId(id) }
 
   const updateDoc = {

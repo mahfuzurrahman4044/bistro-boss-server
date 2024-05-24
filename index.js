@@ -204,6 +204,13 @@ app.get("/purchaseHistory", async (req, res) => {
   res.send(result)
 })
 
+app.get("/purchaseHistory/:email", async (req, res) => {
+  const email = req.params.email;
+
+  const result = await purchaseHistoryCollection.find({ email: email }).toArray();
+  res.send(result)
+})
+
 const usersCollection = client.db("bistro-boss").collection("users");
 app.post("/users", async (req, res) => {
   const user = req.body;

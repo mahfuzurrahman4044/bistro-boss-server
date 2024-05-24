@@ -4,6 +4,7 @@ const cors = require("cors");
 require("dotenv").config();
 const port = process.env.PORT || 5000;
 var jwt = require('jsonwebtoken');
+const stripe = require("stripe")('sk_test_51NryOGFvMe0j8d9xKJIdXUJrm48v1dMzXPKmTpvkxBgqqXWNiQo47Gjv6r0sHKES2LmBR6MvDZwjBHyDqCI24QZx00dSdX6jge');
 app.use(express.json());
 app.use(cors());
 
@@ -172,6 +173,35 @@ app.delete("/deleteCart/:id", async (req, res) => {
     console.error(error);
     res.status(500).json({ message: "Error deleting item" });
   }
+})
+
+app.post("/create-payment-intent", async (req, res) => {
+  const { price } = req.body;
+  const amount = price * 100;
+
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: amount,
+    currency: "usd",
+    payment_method_types: ["card"]
+  });
+
+  res.send({
+    clientSecret: paymentIntent.client_secret,
+  });
+});
+
+const purchaseHistoryCollection = client.db("bistro-boss").collection("purchaseHistory")
+
+app.post("/purchaseHistory", async (req, res) => {
+  const paymentInfo = req.body;
+
+  const result = await purchaseHistoryCollection.insertOne(paymentInfo);
+  res.send(result)
+})
+
+app.get("/purchaseHistory", async (req, res) => {
+  const result = await purchaseHistoryCollection.find().toArray();
+  res.send(result)
 })
 
 const usersCollection = client.db("bistro-boss").collection("users");

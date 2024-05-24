@@ -98,10 +98,34 @@ app.post("/contactEmail", (req, res) => {
 
 
 const menusCollection = client.db("bistro-boss").collection("menus");
+
+app.post("/menus", async (req, res) => {
+  const menu = req.body
+  // console.log(menu);
+  const result = await menusCollection.insertOne(menu);
+  res.send(result)
+})
+
 app.get("/menus", async (req, res) => {
   const result = await menusCollection.find().toArray();
   res.send(result);
 });
+
+app.get("/menus/:email", verifyJwt, async (req, res) => {
+  const email = req.params.email;
+  // console.log(email)
+
+  const result = await menusCollection.find({ email: email }).toArray()
+  res.send(result)
+})
+
+app.delete("/menuDelete/:id", async (req, res) => {
+  const id = req.params.id;
+  // console.log(id)
+
+  const result = await menusCollection.deleteOne({ _id: new ObjectId(id) });
+  res.send(result);
+})
 
 const reviewsCollection = client.db("bistro-boss").collection("reviews")
 app.get("/reviews", async (req, res) => {

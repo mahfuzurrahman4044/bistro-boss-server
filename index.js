@@ -116,9 +116,9 @@ app.get("/menus/:email", verifyJwt, async (req, res) => {
   const email = req.params.email;
   // console.log(email)
 
-  const result = await menusCollection.find({ email: email }).toArray()
-  res.send(result)
-})
+  const result = await menusCollection.find({ email: email }).sort({ _id: -1 }).toArray();
+  res.send(result);
+});
 
 app.delete("/menuDelete/:id", async (req, res) => {
   const id = req.params.id;
@@ -177,7 +177,11 @@ app.delete("/deleteCart/:id", async (req, res) => {
 
 app.post("/create-payment-intent", async (req, res) => {
   const { price } = req.body;
-  const amount = price * 100;
+  const amount = Math.round(price * 100);
+
+  if (amount < 50) {
+    return res.status(400).send({ error: "Amount must be at least $0.50" });
+  }
 
   const paymentIntent = await stripe.paymentIntents.create({
     amount: amount,
@@ -195,19 +199,28 @@ const purchaseHistoryCollection = client.db("bistro-boss").collection("purchaseH
 app.post("/purchaseHistory", async (req, res) => {
   const paymentInfo = req.body;
 
-  const result = await purchaseHistoryCollection.insertOne(paymentInfo);
-  res.send(result)
-})
+  const query = {
+    _id: { $in: paymentInfo.foodsId.map((id) => new ObjectId(id)) },
+  };
 
-app.get("/purchaseHistory", async (req, res) => {
+  try {
+    const deleteFromCart = await cartsCollection.deleteMany(query);
+    const result = await purchaseHistoryCollection.insertOne(paymentInfo);
+    res.status(200).json({ result, deleteFromCart });
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+});
+
+app.get("/purchaseHistory", verifyJwt, async (req, res) => {
   const result = await purchaseHistoryCollection.find().toArray();
   res.send(result)
 })
 
-app.get("/purchaseHistory/:email", async (req, res) => {
+app.get("/purchaseHistory/:email", verifyJwt, async (req, res) => {
   const email = req.params.email;
 
-  const result = await purchaseHistoryCollection.find({ email: email }).toArray();
+  const result = await purchaseHistoryCollection.find({ email: email }).sort({ _id: -1 }).toArray();
   res.send(result)
 })
 

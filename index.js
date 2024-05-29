@@ -255,6 +255,58 @@ app.get("/users", verifyJwt, verifyAdmin, async (req, res) => {
   res.send(users)
 })
 
+app.patch("/users/:email", async (req, res) => {
+  const email = req.params.email
+  // console.log(email)
+
+  const imageURL = req.body.photoURL;
+  // console.log(imageURL)
+
+  try {
+    const filter = { email: email };
+    const updateDoc = {
+      $set: {
+        photoURL: imageURL
+      },
+    };
+
+    const result = await usersCollection.updateOne(filter, updateDoc);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+})
+
+app.put("/users/:email", async (req, res) => {
+  const email = req.params.email
+  // console.log(email)
+
+  const name = req.body.name;
+  // console.log(name)
+
+  try {
+    const filter = { email: email };
+    const updateDoc = {
+      $set: {
+        displayName: name
+      },
+    };
+
+    const result = await usersCollection.updateOne(filter, updateDoc);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+})
+
+app.delete("/users/:email", async (req, res) => {
+  const email = req.params.email;
+  console.log(email);
+
+  const result = await usersCollection.deleteOne({ email: email })
+  res.send(result)
+})
+
 app.get("/users/isAdmin/:email", verifyJwt, async (req, res) => {
   const email = req.params.email
 
